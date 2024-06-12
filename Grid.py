@@ -1,45 +1,6 @@
 import pygame
 import random
-
-class Node():
-    def __init__(self,x,y,size):
-        self.x=x
-        self.y=y
-        self.size=size
-        self.state=None
-        self.f = None
-
-    def draw(self,screen):
-        offset=2
-        color = (255,255,255)
-        if self.isWall():
-            color = (125,125,125)
-        elif self.isOpen():
-            color=(0,255,0)
-        elif self.isClose():
-            color=(255,0,0)
-        elif self.state in ['start','end']:
-            color=(255,255,0)
-        pygame.draw.rect(screen, color, pygame.Rect(self.x*self.size+offset, self.y*self.size+offset,
-                                                            self.size-offset, self.size-offset))
-
-    def calculateF(self, endX,endY):
-        self.f = (self.x-endX)**2 + (self.y-endY)**2
-
-    def setOpen(self):
-        if self.state==None: self.state = 'open'
-
-    def setClose(self):
-        if self.state=='open': self.state = 'closed'
-
-    def isOpen(self):
-        return self.state=='open'
-    
-    def isClose(self):
-        return self.state=='closed'
-    
-    def isWall(self):
-        return self.state=='wall'
+from Node import *
 
 class Grid():
     def __init__(self,screen,pixelSize):
@@ -48,6 +9,7 @@ class Grid():
         w,h = pygame.display.get_surface().get_size()
         self.gridWidth, self.gridHeight = w//pixelSize, h//pixelSize
         self.grid=[[Node(j,i,self.pixelSize) for j in range(self.gridWidth)] for i in range(self.gridHeight)]
+        self.gridCopy=None
         self.start = (0,0)
         self.end = (len(self.grid[0])-1, len(self.grid)-1)
         start_node=self.grid[self.start[1]][self.start[0]]
@@ -71,6 +33,7 @@ class Grid():
             x,y=random.randint(0,self.gridWidth-1), random.randint(0,self.gridHeight-1)
             if (x,y )not in [(0,0), (self.gridWidth-1,self.gridHeight-1)]:
                 self.setWall(x,y)
+        self.saveGrid()
 
     def insertIntoOpenset(self, node:Node, insertTop=None):
         if self.openSet==[]:
@@ -85,6 +48,8 @@ class Grid():
     def runAStarAlgorithm(self):
         if self.openSet == []:
             return 0
+        elif len(self.openSet)>=300:
+            return 2
         else:
             ## Find winner (smallest f)
             winnerI = 0
@@ -109,3 +74,33 @@ class Grid():
                         neighbour.calculateF(self.end[0],self.end[1])
                         neighbour.setOpen()
                         self.insertIntoOpenset( neighbour )
+
+    def reset(self):
+        self.grid=[[Node(j,i,self.pixelSize) for j in range(self.gridWidth)] for i in range(self.gridHeight)]
+        start_node=self.grid[self.start[1]][self.start[0]]
+        start_node.calculateF(self.end[0], self.end[1])
+        start_node.state = 'start'
+        self.openSet = [start_node]
+        self.grid[len(self.grid)-1][len(self.grid[0])-1].state='end'
+
+    def saveGrid(self):
+        self.gridCopy=[[Node(j,i,self.pixelSize) for j in range(self.gridWidth)] for i in range(self.gridHeight)]
+        for row in range(len(self.grid)):
+            for col in range(len(self.grid[0])):
+                self.gridCopy[row][col].state=self.grid[row][col].state
+                self.gridCopy[row][col].f=self.grid[row][col].f
+
+    def loadGrid(self):
+        self.grid=[[Node(j,i,self.pixelSize) for j in range(self.gridWidth)] for i in range(self.gridHeight)]
+        for row in range(len(self.gridCopy)):
+            for col in range(len(self.gridCopy[0])):
+                self.grid[row][col].state=self.gridCopy[row][col].state
+                self.grid[row][col].f=self.gridCopy[row][col].f
+        
+    def resetAlgo(self):
+        self.loadGrid()  ##  Load gridCopy
+        start_node=self.grid[self.start[1]][self.start[0]]
+        start_node.calculateF(self.end[0], self.end[1])
+        start_node.state = 'start'
+        self.openSet = [start_node]
+        self.grid[len(self.grid)-1][len(self.grid[0])-1].state='end'

@@ -23,26 +23,56 @@ GRID_WALL_RATIO = 1/3
 
 ## ----- GAME INIT -----
 GRID = Grid(screen, GRID_PIXEL_SIZE)
-GRID.setWallsRandom(int(GRID.gridWidth*GRID.gridHeight*GRID_WALL_RATIO))
+n = int(GRID.gridWidth*GRID.gridHeight*GRID_WALL_RATIO)
+GRID.setWallsRandom(n)
 
 running=True
 runAStar = True
+loopAStar = True
+print(f'Press: \n1. to turn the auto-restart on/off.\n2. to reset the grid and re-randomise wall placement.\n3. Replay current grid')
+'''
+Press:
+1. to turn the auto-restart on/off.
+2. to reset the grid and re-randomise wall placement.
+3. Replay current grid
+'''
 while running:
 
 	## ----- QUIT MECHANISM -----
 	for event in pygame.event.get():
 		if event.type==pygame.QUIT:
 			running=False
+		## ----- BUTTON MECHANISM -----
+		elif event.type == pygame.KEYDOWN:
+			if event.key == pygame.K_1:  ##  Turn on and off looping algorithm
+				loopAStar = not loopAStar
+				if loopAStar: runAStar=True
+				print(f'(1) Loop {"on" if loopAStar else "off"}')
+			elif event.key == pygame.K_2:  ##  Reset grid
+				GRID.reset()
+				GRID.setWallsRandom(n)
+				runAStar = True
+				print(f'(2) Grid reset')
+			elif event.key == pygame.K_3:  ##  Replay last
+				GRID.resetAlgo()
+				runAStar = True
+				print(f'(3) A* reset')
 
-	## ----- GAME MECHANISM -----
+	## ----- VISUALISER MECHANISM -----
 	GRID.draw()
 	if runAStar:
 		result = GRID.runAStarAlgorithm()
-		if result in [0,1]:
-			d = {0:'No solutions', 1:'End reached'}
+		if result in [0,1,2]:
+			d = {0:'No solutions', 1:'End reached',2:'Too slow'}
 			print(d[result])
-			runAStar = False
-
+			##  Loop A* algorithm for satisfaction! :)
+			if loopAStar:
+				##  Reset and randomize
+				GRID.reset()
+				GRID.setWallsRandom(n)
+			else:
+				runAStar = False
+	
 	## ----- PYGAME -----
 	pygame.display.update()
 	screen.fill( (0,0,0) ) #reset surface
