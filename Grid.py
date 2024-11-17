@@ -1,5 +1,6 @@
 import pygame
 import random
+import json
 from Node import *
 
 class Grid():
@@ -24,9 +25,9 @@ class Grid():
             for j in range(self.gridHeight):
                 self.grid[j][i].draw(self.screen)
 
-    def setWall(self, row:int, column:int):
+    def setWall(self, x:int, y:int):
         '''Row and Column start from 0'''
-        self.grid[column][row].state = 'wall'
+        self.grid[y][x].state = 'wall'
 
     def setWallsRandom(self, n):
         for i in range(n):
@@ -90,12 +91,19 @@ class Grid():
                 self.gridCopy[row][col].state=self.grid[row][col].state
                 self.gridCopy[row][col].f=self.grid[row][col].f
 
-    def loadGrid(self):
-        self.grid=[[Node(j,i,self.pixelSize) for j in range(self.gridWidth)] for i in range(self.gridHeight)]
-        for row in range(len(self.gridCopy)):
-            for col in range(len(self.gridCopy[0])):
-                self.grid[row][col].state=self.gridCopy[row][col].state
-                self.grid[row][col].f=self.gridCopy[row][col].f
+    def loadGrid(self, saveFileName=None):
+        if saveFileName==None:
+            self.grid=[[Node(j,i,self.pixelSize) for j in range(self.gridWidth)] for i in range(self.gridHeight)]
+            for row in range(len(self.gridCopy)):
+                for col in range(len(self.gridCopy[0])):
+                    self.grid[row][col].state=self.gridCopy[row][col].state
+                    self.grid[row][col].f=self.gridCopy[row][col].f
+        else:
+            with open(saveFileName,'r') as f:
+                walls=json.loads(f.read())
+                for x,y in walls:
+                    self.setWall(x,y)
+            self.saveGrid()
         
     def resetAlgo(self):
         self.loadGrid()  ##  Load gridCopy

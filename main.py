@@ -20,16 +20,23 @@ fps=120  ## Changes speed of visualiser
 ## ----- GAME VARIABLES -----
 GRID_PIXEL_SIZE = 10
 GRID_WALL_RATIO = 1/3
+MENU_STR = f'\n\n\
+	Press: \n\
+	1. to turn the auto-restart on/off.\n\
+	2. to reset the grid and re-randomise wall placement.\n\
+	3. Replay current grid\n\n'
 
 ## ----- GAME INIT -----
 GRID = Grid(screen, GRID_PIXEL_SIZE)
 n = int(GRID.gridWidth*GRID.gridHeight*GRID_WALL_RATIO)
-GRID.setWallsRandom(n)
+# GRID.setWallsRandom(n)
+wallsLoadFile='walls.json'
+GRID.loadGrid(wallsLoadFile)
 
 running=True
 runAStar = True
-loopAStar = True
-print(f'Press: \n1. to turn the auto-restart on/off.\n2. to reset the grid and re-randomise wall placement.\n3. Replay current grid')
+loopAStar = False
+print(MENU_STR)
 '''
 Press:
 1. to turn the auto-restart on/off.
